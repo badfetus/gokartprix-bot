@@ -16,7 +16,7 @@ bot = commands.Bot(command_prefix='!')
 
 @bot.command(name='about')
 async def about(ctx):
-    await ctx.message.channel.send('Go Kart Prix Bot by Berke Zorlu (bad_fetus#3637). All complaints go to him!')
+    await ctx.message.channel.send('Go Kart Prix Bot by Berke Zorlu (bad_fetus#3637). All complaints go to him! Repository: https://github.com/badfetus/gokartprix-bot')
     
 @bot.command(name='assign-race')
 @commands.has_role('admin')
