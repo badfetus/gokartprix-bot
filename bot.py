@@ -40,10 +40,10 @@ async def register(ctx):
         if (user_data is None):
             await ctx.message.channel.send('You need to enter your user data first. Please see DMs for help.')
             await ctx.message.author.create_dm()
-            await ctx.message.author.dm_channel.send('Please use !add-racer-data command to enter your data. You need to enter firstname, lastname, email, phone, country. Usage example looks like "!add-racer-data firstname Igor". Enter your data only in here, never directly in the server.')
+            await ctx.message.author.dm_channel.send('Please use !add-info command to enter your data. You need to enter firstname, lastname, email, phone, country. Usage example looks like "!add-info firstname Igor". Enter your data only in here, never directly in the server.')
         else:
             user_fully_registered = True
-            error_string = 'You haven\'t added all your data yet. Please use the !add-racer-data command to add the following data: '
+            error_string = 'You haven\'t added all your data yet. Please use the !add-info command to add the following data: '
             for parameter in user_parameters:
                 if user_data.get(parameter) is None:
                     user_fully_registered = False
@@ -60,8 +60,8 @@ def submitData(race_data, user_data):
     formfiller.submitData(race_data, user_data, user_parameters)
 
 user_parameters = ['firstname', 'lastname', 'email', 'phone', 'country']            
-@bot.command(name='add-racer-data')
-async def add_racer_data(ctx, parameter: str, value: str):
+@bot.command(name='add-info')
+async def add_info(ctx, parameter: str, value: str):
     user_database = read_json('user data.json')
     user_data = user_database.get(str(ctx.message.author.id))
     if(user_data is None):
@@ -83,7 +83,13 @@ async def add_racer_data(ctx, parameter: str, value: str):
         user_database.update({str(ctx.message.author.id): user_data})
         save_json('user data.json', user_database)
         await ctx.message.channel.send('Saved user ' + parameter + ' as ' + value + '.' )
-        
+
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("A parameter is missing. !add-info command requires 2 parameters, the type of info you are adding and the value. The types you can add are firstname, lastname, email, phone, country.") 
+        await ctx.send("Usage example: \"!add-info firstname Igor\"") 
+
 def read_json(fileName):
    with open(fileName, 'r') as file:
       return json.load(file)
