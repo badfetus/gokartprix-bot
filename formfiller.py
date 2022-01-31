@@ -4,7 +4,8 @@ from urllib.parse import urljoin
 
 def submitData(race_url, user_data, parameter_names):
     session = HTMLSession()
-    form = get_all_forms(race_url, session)[2]
+        
+    form = get_all_forms(race_url, session)[1]
     form_details = get_form_details(form)
     i = 0
     captcha_solution = get_captcha_solution(form_details);

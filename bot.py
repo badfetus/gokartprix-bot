@@ -50,6 +50,7 @@ async def register(ctx):
                     error_string += parameter + ' ' 
             if user_fully_registered:
                 submitData(race_data, user_data)
+                await ctx.message.channel.send('Registration submitted! Check your e-mail to confirm you have successfully registered. Confirmation e-mail might take up to 5 minutes, and might end up in your spam folder.')
             else:
                 await ctx.message.channel.send(error_string)
 
