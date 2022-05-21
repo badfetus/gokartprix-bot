@@ -12,7 +12,6 @@ def submitData(race_url, user_data, parameter_names):
     
     data = {}
     for input_tag in form_details["inputs"]:
-        print(input_tag)
         if ((input_tag["type"] == "hidden") or (input_tag["name"] == "rtec_user_comments")): 
             data[input_tag["name"]] = input_tag["value"] # Use default value
         elif input_tag["name"] == "rtec_recaptcha":
