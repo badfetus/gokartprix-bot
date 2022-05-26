@@ -6,7 +6,9 @@ import json
 import formfiller
 from discord.ext import commands
 from dotenv import load_dotenv
-
+from bs4 import BeautifulSoup
+from requests_html import HTMLSession
+from urllib.parse import urljoin
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -14,11 +16,11 @@ GUILD = os.getenv('DISCORD_GUILD')
 
 bot = commands.Bot(command_prefix='!')
 
-@bot.command(name='about')
+@bot.command(name='about', help='Shows bot info')
 async def about(ctx):
     await ctx.message.channel.send('Go Kart Prix Bot by Berke Zorlu (bad_fetus#3637). All complaints go to him! Repository: https://github.com/badfetus/gokartprix-bot')
     
-@bot.command(name='assign-race')
+@bot.command(name='assign-race', help ='Assigns race URL to channel')
 @commands.has_role('admin')
 async def assign_race(ctx, signup_link: str):
     race_data = read_json('race data.json')
@@ -28,7 +30,7 @@ async def assign_race(ctx, signup_link: str):
     await ctx.message.channel.send('Channel assigned to the given URL.')
 
    
-@bot.command(name='register')
+@bot.command(name='register', help='Registers you to a race')
 async def register(ctx):
     race_database = read_json('race data.json')
     race_data = race_database.get(str(ctx.message.channel.id))
@@ -55,15 +57,48 @@ async def register(ctx):
                 await ctx.message.author.dm_channel.send('Check your e-mail to confirm you have successfully registered. Confirmation e-mail might take up to 5 minutes, and might end up in your spam folder.')
             else:
                 await ctx.message.channel.send(error_string)
-
+        
 def submitData(race_data, user_data):
     attempt_string = 'Attempting to submit user data with following inputs...: '
     for parameter in user_parameters:
         attempt_string += parameter + ': ' + user_data.get(parameter) + ' | '
     formfiller.submitData(race_data, user_data, user_parameters)
 
+@bot.command(name='details', help='Shows race details')
+async def details(ctx):
+    race_database = read_json('race data.json')
+    race_data = race_database.get(str(ctx.message.channel.id))
+    if (race_data is None):
+        await ctx.message.channel.send('No race associated with the channel. Please make sure you run this command from the appropriate channel in the Go Kart Prix server. If you are an admin, use the !assign-race command with the URL to the signup page to associate it.')
+    else:
+        session = HTMLSession()
+        res = session.get(race_data)
+        soup = BeautifulSoup(res.html.html, "html.parser")
+        fullText = soup.get_text()
+        split = fullText.splitlines()
+        s = 'Race details\n' + getDate(split) + '\n' + getPlace(split) + '\n' + getGPS(split)
+        await ctx.message.channel.send(s)
+
+def getDate(split):
+    for s in split:
+        if(s.startswith('Date')):
+            return s
+    return 'Failed to determine time.'
+            
+def getPlace(split):
+    for s in split:
+        if(s.startswith('Location')):
+            return s
+    return 'Failed to determine location.'
+
+def getGPS(split):
+    for s in split:
+        if(s.startswith('GPS')):
+            return s 
+    return 'Failed to determine GPS.'
+
 user_parameters = ['firstname', 'lastname', 'email', 'phone', 'country']            
-@bot.command(name='add-info')
+@bot.command(name='add-info', help='Adds your racer details to the bot database')
 async def add_info(ctx, parameter: str, value: str):
     user_database = read_json('user data.json')
     user_data = user_database.get(str(ctx.message.author.id))
