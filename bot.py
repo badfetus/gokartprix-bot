@@ -4,6 +4,7 @@ import os
 import discord
 import json
 import formfiller
+import traceback
 from discord.ext import commands
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
@@ -76,7 +77,7 @@ async def details(ctx):
         soup = BeautifulSoup(res.html.html, "html.parser")
         fullText = soup.get_text()
         split = fullText.splitlines()
-        s = 'Race details\n' + getDate(split) + '\n' + getPlace(split) + '\n' + getGPS(split)
+        s = 'Race details:\n' + getDate(split) + '\n' + getPlace(split) + '\n' + getGPS(split)
         await ctx.message.channel.send(s)
 
 def getDate(split):
@@ -96,6 +97,27 @@ def getGPS(split):
         if(s.startswith('GPS')):
             return s 
     return 'Failed to determine GPS.'
+    
+@bot.command(name='participants', help='Shows how many people signed up')
+async def participants(ctx):
+    race_database = read_json('race data.json')
+    race_data = race_database.get(str(ctx.message.channel.id))
+    if (race_data is None):
+        await ctx.message.channel.send('No race associated with the channel. Please make sure you run this command from the appropriate channel in the Go Kart Prix server. If you are an admin, use the !assign-race command with the URL to the signup page to associate it.')
+    else:
+        session = HTMLSession()
+        res = session.get(race_data)
+        soup = BeautifulSoup(res.html.html, "html.parser")
+        fullText = soup.get_text()
+        split = fullText.splitlines()
+        s = getParticipantCount(split)
+        await ctx.message.channel.send(s)
+        
+def getParticipantCount(split):
+    for s in split:
+        if(s.startswith('Attendance')):
+            return s 
+    return 'Failed to determine participant count.'
 
 user_parameters = ['firstname', 'lastname', 'email', 'phone', 'country']            
 @bot.command(name='add-info', help='Adds your racer details to the bot database')
@@ -126,7 +148,11 @@ async def add_info(ctx, parameter: str, value: str):
 async def on_command_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send("A parameter is missing. !add-info command requires 2 parameters, the type of info you are adding and the value. The types you can add are firstname, lastname, email, phone, country.") 
-        await ctx.send("Usage example: \"!add-info firstname Igor\"") 
+        await ctx.send("Usage example: \"!add-info firstname Igor\"")
+    elif isinstance(error, commands.CommandNotFound):
+        await ctx.message.channel.send("I don't know that command")
+    else:
+        print(error)
 
 def read_json(fileName):
    with open(fileName, 'r') as file:
@@ -135,5 +161,52 @@ def read_json(fileName):
 def save_json(fileName, data):
    with open(fileName, 'w') as file:
       json.dump(data, file, indent=4)
+      
+def getStageNo():
+    return int(read_json('bot data.json').get('nextStage'))
+    
+def setStageNo(stageNo):
+    botData = read_json('bot data.json')
+    botData.update({'nextStage': stageNo})
+    save_json('bot data.json', botData)
+
+@bot.command(name='set-stage', help ='Sets next stage no.')
+@commands.has_role('admin')
+async def setNextStageNo(ctx, stageNo: int):
+    setStageNo(stageNo)
+    await ctx.message.channel.send('Next stage no. set to ' + str(stageNo))
+
+@bot.command(name='standings', help='Shows the top 10 of standings')
+async def standings(ctx):
+    standingsTable = getTables('https://www.gokartprix.gno.se/2022-season/2022-standings/')[0]
+    s = 'Standings: \n'
+    for i in range(1, 11):
+        if(len(standingsTable) <= i):
+            break
+        s += standingsTable[i][0] + ". " + standingsTable[i][1] + ": " + standingsTable[i][len(standingsTable[i]) - 2] + " (" + standingsTable[i][len(standingsTable[i]) - 1] + ")\n"
+    await ctx.message.channel.send(s)
+
+@bot.command(name='schedule', help='Shows the next 5 races')
+async def schedule(ctx):
+    table = getTables('https://www.gokartprix.gno.se/2022-season/')[0]
+    s = 'Schedule: \n'
+    for i in range(getStageNo(), getStageNo() + 5):
+        if(len(table) <= i):
+            break
+        s += table[i][0] + " - " + table[i][2] + ": " + table[i][1] + " (" + table[i][5] + ")\n"
+    await ctx.message.channel.send(s)
+
+def getTables(url):
+    session = HTMLSession()
+    res = session.get(url)
+    soup = BeautifulSoup(res.html.html, "html.parser")
+    tables = [
+        [
+            [td.get_text(strip=True) for td in tr.find_all('td')] 
+            for tr in table.find_all('tr')
+        ] 
+        for table in soup.find_all('table')
+    ]
+    return tables
 
 bot.run(TOKEN)  
