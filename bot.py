@@ -147,10 +147,16 @@ async def add_info(ctx, parameter: str, value: str):
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send("A parameter is missing. !add-info command requires 2 parameters, the type of info you are adding and the value. The types you can add are firstname, lastname, email, phone, country.") 
-        await ctx.send("Usage example: \"!add-info firstname Igor\"")
+        s = "A parameter is missing.\n"
+        if(str(ctx.invoked_with) == "add-info"):
+           s += "!add-info command requires 2 parameters, the type of info you are adding and the value. The types you can add are firstname, lastname, email, phone, country.\n"
+           s += "Usage example: \"!add-info firstname Igor\""
+        elif(str(ctx.invoked_with) == "alias"):
+           s += "!alias command requires 2 parameters, the alias you want and the command you're targeting. Type them without the exclamation mark."
+        await ctx.send(s)
+
     elif isinstance(error, commands.CommandNotFound):
-        await ctx.message.channel.send("I don't know that command")
+        await customCommand(ctx)
     else:
         print(error)
 
@@ -208,5 +214,36 @@ def getTables(url):
         for table in soup.find_all('table')
     ]
     return tables
+    
+async def customCommand(ctx):
+    aliases = read_json('bot data.json').get('aliases')
+    alias = ctx.invoked_with
+    command = aliases.get(alias)
+    
+    if (command is None):
+        await ctx.message.channel.send("I don't know that command. You can use !alias to set up an alias for an existing command.")
+    else:
+        await ctx.invoke(bot.get_command(command))
+        
+@bot.command(name='alias', help='Adds an alias for an existing command. Usage: !alias <aliasName> <commandName>')
+async def alias(ctx, alias: str, command: str):
+    targetFound = False
 
+    for target in bot.commands:
+        if(str(target) == command):
+            targetFound = True
+            break
+    
+    if(not targetFound):
+       await ctx.message.channel.send("No such command: " + command)
+    else:
+        botData = read_json('bot data.json')
+        aliases = botData.get('aliases')
+        aliases.update({alias: command})
+        botData.update({'aliases': aliases})
+        save_json('bot data.json', botData)
+        await ctx.message.channel.send('Alias !' + alias + ' will now execute !' + command + '.' )
+    
+
+#TODO fix wrong parameter count handling
 bot.run(TOKEN)  
