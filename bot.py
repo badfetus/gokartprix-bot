@@ -52,18 +52,16 @@ async def register(ctx):
                     user_fully_registered = False
                     error_string += parameter + ' ' 
             if user_fully_registered:
-                submitData(race_data, user_data)
-                await ctx.message.channel.send('Registration submitted!')
-                await ctx.message.author.create_dm()
-                await ctx.message.author.dm_channel.send('Check your e-mail to confirm you have successfully registered. Confirmation e-mail might take up to 5 minutes, and might end up in your spam folder.')
+                errors = formfiller.submitData(race_data, user_data, user_parameters)
+                if errors == "":
+                    await ctx.message.channel.send('Registration submitted!')
+                    await ctx.message.author.create_dm()
+                    await ctx.message.author.dm_channel.send('Check your e-mail to confirm you have successfully registered. Confirmation e-mail might take up to 5 minutes, and might end up in your spam folder.')
+                else:
+                    await ctx.message.channel.send('Registration failed: \n' + errors)
             else:
                 await ctx.message.channel.send(error_string)
         
-def submitData(race_data, user_data):
-    attempt_string = 'Attempting to submit user data with following inputs...: '
-    for parameter in user_parameters:
-        attempt_string += parameter + ': ' + user_data.get(parameter) + ' | '
-    formfiller.submitData(race_data, user_data, user_parameters)
 
 @bot.command(name='details', help='Shows race details')
 async def details(ctx):
@@ -244,6 +242,4 @@ async def alias(ctx, alias: str, command: str):
         save_json('bot data.json', botData)
         await ctx.message.channel.send('Alias !' + alias + ' will now execute !' + command + '.' )
     
-
-#TODO fix wrong parameter count handling
 bot.run(TOKEN)  

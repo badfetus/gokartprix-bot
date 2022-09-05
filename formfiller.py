@@ -24,10 +24,18 @@ def submitData(race_url, user_data, parameter_names):
     # join the url with the action (form request URL)
     race_url = urljoin(race_url, form_details["action"])
 
-    if form_details["method"] == "post":
-        res = session.post(race_url, data=data)
-    elif form_details["method"] == "get":
-        res = session.get(race_url, params=data)
+    res = session.post(race_url, data=data)
+    return validate(res)
+
+def validate(res):
+    errors = ""
+    soup = BeautifulSoup(res.html.html, "html.parser")
+    form = soup.find_all("form")[1]
+    form_details = get_form_details(form)   
+    for input_tag in form_details["inputs"]:
+        if("aria-invalid" in input_tag.keys() and input_tag["aria-invalid"] == "true"):
+            errors += "Invalid " + input_tag["name"] + "\n"             
+    return errors
 
 def get_captcha_solution(form_details):
     for input_tag in form_details["inputs"]:
@@ -62,8 +70,10 @@ def get_form_details(form):
         input_name = input_tag.attrs.get("name")
         # get the default value of that input tag
         input_value =input_tag.attrs.get("value", "")
+        # get the validity of input
+        input_invalid = input_tag.attrs.get("aria-invalid")
         # add everything to that list
-        inputs.append({"type": input_type, "name": input_name, "value": input_value})
+        inputs.append({"type": input_type, "name": input_name, "value": input_value, "aria-invalid": input_invalid})
     # put everything to the resulting dictionary
     details["action"] = action
     details["method"] = method
