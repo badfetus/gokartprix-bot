@@ -30,14 +30,17 @@ def submitData(race_url, user_data, parameter_names):
 def validate(res):
     errors = ""
     soup = BeautifulSoup(res.html.html, "html.parser")
-    form = soup.find_all("form")[1]
-    form_details = get_form_details(form)   
-    for input_tag in form_details["inputs"]:
-        if("aria-invalid" in input_tag.keys() and input_tag["aria-invalid"] == "true"):
-            split = input_tag["name"].split("_")
-            error = split[len(split) - 1]
-            errors += "Invalid " + error + "\n"             
+    forms = soup.find_all("form")
+    if(len(forms) > 1):
+        form = soup.find_all("form")[1]
+        form_details = get_form_details(form)   
+        for input_tag in form_details["inputs"]:
+            if("aria-invalid" in input_tag.keys() and input_tag["aria-invalid"] == "true"):
+                split = input_tag["name"].split("_")
+                error = split[len(split) - 1]
+                errors += "Invalid " + error + "\n"             
     return errors
+        
 
 def get_captcha_solution(form_details):
     for input_tag in form_details["inputs"]:
