@@ -34,7 +34,9 @@ def validate(res):
     form_details = get_form_details(form)   
     for input_tag in form_details["inputs"]:
         if("aria-invalid" in input_tag.keys() and input_tag["aria-invalid"] == "true"):
-            errors += "Invalid " + input_tag["name"] + "\n"             
+            split = input_tag["name"].split("_")
+            error = split[len(split) - 1]
+            errors += "Invalid " + error + "\n"             
     return errors
 
 def get_captcha_solution(form_details):

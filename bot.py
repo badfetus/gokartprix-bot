@@ -157,6 +157,9 @@ async def on_command_error(ctx, error):
         await customCommand(ctx)
     else:
         print(error)
+        print('Ignoring exception in command {}:'.format(ctx.command))
+        traceback.print_exception(type(error), error, error.__traceback__)
+        print("____________________________________________________________\n\n")
 
 def read_json(fileName):
    with open(fileName, 'r') as file:
