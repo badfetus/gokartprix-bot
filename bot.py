@@ -108,7 +108,14 @@ async def participants(ctx):
         soup = BeautifulSoup(res.html.html, "html.parser")
         fullText = soup.get_text()
         split = fullText.splitlines()
-        s = getParticipantCount(split)
+        s = getParticipantCount(split) + "\n"
+        attendees = getAttendees(race_data)
+        num = len(attendees[0])
+        for x in range(num):
+            idx = num - x - 1
+            if(len(attendees[1]) > idx):
+                s += (attendees[1][idx]) + "\n"
+            s += (attendees[0][idx]) + "\n"
         await ctx.message.channel.send(s)
         
 def getParticipantCount(split):
@@ -215,6 +222,16 @@ def getTables(url):
         for table in soup.find_all('table')
     ]
     return tables
+
+def getAttendees(url):
+    session = HTMLSession()
+    res = session.get(url)
+    soup = BeautifulSoup(res.html.html, "html.parser")
+    attendees = [
+        [td.get_text(strip=True) for td in table.find_all(class_ = 'rtec-attendee')]      
+        for table in soup.find_all(class_ = 'rtec-attendee-list')
+    ]
+    return attendees
     
 async def customCommand(ctx):
     aliases = read_json('bot data.json').get('aliases')
