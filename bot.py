@@ -110,12 +110,15 @@ async def participants(ctx):
         split = fullText.splitlines()
         s = getParticipantCount(split) + "\n"
         attendees = getAttendees(race_data)
-        num = len(attendees[0])
-        for x in range(num):
-            idx = num - x - 1
-            if(len(attendees[1]) > idx):
-                s += (attendees[1][idx]) + "\n"
-            s += (attendees[0][idx]) + "\n"
+        if(len(attendees) == 2):
+            num = len(attendees[0])
+            for x in range(num):
+                idx = num - x - 1
+                if(len(attendees[1]) > idx):
+                    s += (attendees[1][idx]) + "\n"
+                s += (attendees[0][idx]) + "\n"
+        else:
+            s += "Attendee list not found."
         await ctx.message.channel.send(s)
         
 def getParticipantCount(split):
