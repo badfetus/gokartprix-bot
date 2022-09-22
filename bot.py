@@ -75,26 +75,32 @@ async def details(ctx):
         soup = BeautifulSoup(res.html.html, "html.parser")
         fullText = soup.get_text()
         split = fullText.splitlines()
-        s = 'Race details:\n' + getDate(split) + '\n' + getPlace(split) + '\n' + getGPS(split)
+        s = 'Race details:\n' + getDate(split) + '\n' + getName(split) + '\n' + getPlace(split) + '\n' + getGPS(split)
         await ctx.message.channel.send(s)
 
 def getDate(split):
     for s in split:
         if(s.startswith('Date')):
             return s
-    return 'Failed to determine time.'
+    return 'Failed to find race date.'
+            
+def getName(split):
+    for s in split:
+        if(s.startswith('Name')):
+            return s
+    return 'Failed to find track name.' 
             
 def getPlace(split):
     for s in split:
         if(s.startswith('Location')):
             return s
-    return 'Failed to determine location.'
+    return 'Failed to find track location.'
 
 def getGPS(split):
     for s in split:
         if(s.startswith('GPS')):
             return s 
-    return 'Failed to determine GPS.'
+    return 'Failed to find track GPS.'
     
 @bot.command(name='participants', help='Shows how many people signed up')
 async def participants(ctx):
