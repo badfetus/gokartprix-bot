@@ -87,7 +87,7 @@ def getDate(split):
 def getName(split):
     for s in split:
         if(s.startswith('Name')):
-            return s
+            return s.replace("Name", "Track")
     return 'Failed to find track name.' 
             
 def getPlace(split):
