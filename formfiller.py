@@ -4,28 +4,32 @@ from urllib.parse import urljoin
 
 def submitData(race_url, user_data, parameter_names):
     session = HTMLSession()
-        
-    form = get_all_forms(race_url, session)[1]
-    form_details = get_form_details(form)
-    i = 0
-    captcha_solution = get_captcha_solution(form_details);
     
-    data = {}
-    for input_tag in form_details["inputs"]:
-        if ((input_tag["type"] == "hidden") or (input_tag["name"] == "rtec_user_comments")): 
-            data[input_tag["name"]] = input_tag["value"] # Use default value
-        elif input_tag["name"] == "rtec_recaptcha":
-             data[input_tag["name"]] = captcha_solution
-        elif input_tag["type"] != "submit": # take from user data
-            value = user_data.get(parameter_names[i])
-            data[input_tag["name"]] = value
-            i += 1
+    forms = get_all_forms(race_url, session)
+    if(len(forms) < 2):
+        return "Failed to find signup form. Perhaps the event is already over?"
+    else:
+        form = forms[1]
+        form_details = get_form_details(form)
+        i = 0
+        captcha_solution = get_captcha_solution(form_details);
+    
+        data = {}
+        for input_tag in form_details["inputs"]:
+            if ((input_tag["type"] == "hidden") or (input_tag["name"] == "rtec_user_comments")): 
+                data[input_tag["name"]] = input_tag["value"] # Use default value
+            elif input_tag["name"] == "rtec_recaptcha":
+                data[input_tag["name"]] = captcha_solution
+            elif input_tag["type"] != "submit": # take from user data
+                value = user_data.get(parameter_names[i])
+                data[input_tag["name"]] = value
+                i += 1
             
-    # join the url with the action (form request URL)
-    race_url = urljoin(race_url, form_details["action"])
+        # join the url with the action (form request URL)
+        race_url = urljoin(race_url, form_details["action"])
 
-    res = session.post(race_url, data=data)
-    return validate(res)
+        res = session.post(race_url, data=data)
+        return validate(res)
 
 def validate(res):
     errors = ""
