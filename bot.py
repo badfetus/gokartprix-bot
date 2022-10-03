@@ -22,7 +22,7 @@ async def about(ctx):
     await ctx.message.channel.send('Go Kart Prix Bot by Berke Zorlu (bad_fetus#3637). All complaints go to him! Repository: https://github.com/badfetus/gokartprix-bot')
     
 @bot.command(name='assign-race', help ='Assigns race URL to channel')
-@commands.has_role('admin')
+@commands.has_role('League Admin')
 async def assign_race(ctx, signup_link: str):
     race_data = read_json('race data.json')
     channel_id = ctx.message.channel.id
@@ -101,6 +101,12 @@ def getGPS(split):
         if(s.startswith('GPS')):
             return s 
     return 'Failed to find track GPS.'
+    
+def getStandingsUpdate(split):
+    for s in split:
+        if(s.startswith('Last Updated')):
+            return s 
+    return 'Failed to find last update date.'
     
 @bot.command(name='participants', help='Shows how many people signed up')
 async def participants(ctx):
@@ -194,19 +200,30 @@ def setStageNo(stageNo):
     save_json('bot data.json', botData)
 
 @bot.command(name='set-stage', help ='Sets next stage no.')
-@commands.has_role('admin')
+@commands.has_role('League Admin')
 async def setNextStageNo(ctx, stageNo: int):
     setStageNo(stageNo)
     await ctx.message.channel.send('Next stage no. set to ' + str(stageNo))
 
 @bot.command(name='standings', help='Shows the top 10 of standings')
 async def standings(ctx):
-    standingsTable = getTables('https://www.gokartprix.gno.se/2022-season/2022-standings/')[0]
+    url = 'https://www.gokartprix.gno.se/2022-season/2022-standings/'
+
+    standingsTable = getTables(url)[0]
     s = 'Standings: \n'
     for i in range(1, 11):
         if(len(standingsTable) <= i):
             break
         s += standingsTable[i][0] + ". " + standingsTable[i][1] + ": " + standingsTable[i][len(standingsTable[i]) - 2] + " (" + standingsTable[i][len(standingsTable[i]) - 1] + ")\n"
+    s += "\n"
+    
+    session = HTMLSession()
+    res = session.get(url)
+    soup = BeautifulSoup(res.html.html, "html.parser")
+    fullText = soup.get_text()
+    split = fullText.splitlines()
+    s += getStandingsUpdate(split)
+    
     await ctx.message.channel.send(s)
 
 @bot.command(name='schedule', help='Shows the next 5 races')
