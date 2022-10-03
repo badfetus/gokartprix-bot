@@ -214,7 +214,7 @@ async def standings(ctx):
     for i in range(1, 11):
         if(len(standingsTable) <= i):
             break
-        s += standingsTable[i][0] + ". " + standingsTable[i][1] + ": " + standingsTable[i][len(standingsTable[i]) - 2] + " (" + standingsTable[i][len(standingsTable[i]) - 1] + ")\n"
+        s += standingsTable[i][0] + ". " + standingsTable[i][1] + ": " + standingsTable[i][len(standingsTable[i]) - 1] + "\n"
     s += "\n"
     
     session = HTMLSession()
