@@ -139,7 +139,7 @@ def getParticipantCount(split):
             return s 
     return 'Failed to determine participant count.'
 
-user_parameters = ['firstname', 'lastname', 'email', 'phone', 'country']            
+user_parameters = ['firstname', 'lastname', 'email', 'country', 'phone']            
 @bot.command(name='add-info', help='Adds your racer details to the bot database')
 async def add_info(ctx, parameter: str, value: str):
     user_database = read_json('user data.json')
