@@ -228,7 +228,7 @@ async def standings(ctx):
 
 @bot.command(name='schedule', help='Shows the next 5 races')
 async def schedule(ctx):
-    table = getTables('https://www.gokartprix.gno.se/2022-season/')[0]
+    table = getTables('https://www.gokartprix.gno.se/2023-session/2023-season/')[0]
     s = 'Schedule: \n'
     for i in range(getStageNo(), getStageNo() + 5):
         if(len(table) <= i):
