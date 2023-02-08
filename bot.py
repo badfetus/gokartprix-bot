@@ -207,7 +207,7 @@ async def setNextStageNo(ctx, stageNo: int):
 
 @bot.command(name='standings', help='Shows the top 10 of standings')
 async def standings(ctx):
-    url = 'https://www.gokartprix.gno.se/2022-season/2022-standings/'
+    url = 'https://www.gokartprix.gno.se/2023-session/2023-standings/'
 
     standingsTable = getTables(url)[0]
     s = 'Standings: \n'
