@@ -20,6 +20,8 @@ def submitData(race_url, user_data, parameter_names):
                 data[input_tag["name"]] = input_tag["value"] # Use default value
             elif input_tag["name"] == "rtec_recaptcha":
                 data[input_tag["name"]] = captcha_solution
+            elif input_tag["type"] == "checkbox":
+                data[input_tag["name"]] = "true"
             elif input_tag["type"] != "submit": # take from user data
                 value = user_data.get(parameter_names[i])
                 data[input_tag["name"]] = value
