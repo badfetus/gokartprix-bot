@@ -207,7 +207,7 @@ async def setNextStageNo(ctx, stageNo: int):
 
 @bot.command(name='standings', help='Shows the top 10 of standings')
 async def standings(ctx):
-    url = 'https://gokartprix.se/2023-session/2023-standings/'
+    url = 'https://gokartprix.se/2024-season/2024-standings/'
 
     standingsTable = getTables(url)[0]
     s = 'Standings: \n'
@@ -228,7 +228,7 @@ async def standings(ctx):
 
 @bot.command(name='schedule', help='Shows the next 5 races')
 async def schedule(ctx):
-    table = getTables('https://gokartprix.se/2023-session/2023-season/')[0]
+    table = getTables('https://gokartprix.se/2024-season/2024-schedule/')[0]
     s = 'Schedule: \n'
     for i in range(getStageNo(), getStageNo() + 5):
         if(len(table) <= i):
