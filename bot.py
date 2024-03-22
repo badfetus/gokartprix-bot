@@ -1,4 +1,3 @@
-# bot.py
 import os
 
 import discord
@@ -182,6 +181,10 @@ async def on_command_error(ctx, error):
         print('Ignoring exception in command {}:'.format(ctx.command))
         traceback.print_exception(type(error), error, error.__traceback__)
         print("____________________________________________________________\n\n")
+        if(hasattr(error, message)):
+            await ctx.send("ERROR: Something went wrong: " + error.message)
+        else:
+            await ctx.send("ERROR: Something went wrong.")
 
 def read_json(fileName):
    with open(fileName, 'r') as file:

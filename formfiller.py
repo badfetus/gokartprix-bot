@@ -6,54 +6,59 @@ def submitData(race_url, user_data, parameter_names):
     session = HTMLSession()
     
     forms = get_all_forms(race_url, session)
-    if(len(forms) < 2):
-        return "Failed to find signup form. Perhaps the event is already over?"
-    else:
-        form = forms[1]
-        form_details = get_form_details(form)
-        i = 0
-        captcha_solution = get_captcha_solution(form_details);
+    form_details = get_signup_form_details(forms)
+    i = 0
+    captcha_solution = get_captcha_solution(form_details);
     
-        data = {}
-        for input_tag in form_details["inputs"]:
-            if ((input_tag["type"] == "hidden") or (input_tag["name"] == "rtec_user_comments")): 
-                data[input_tag["name"]] = input_tag["value"] # Use default value
-            elif input_tag["name"] == "rtec_recaptcha":
-                data[input_tag["name"]] = captcha_solution
-            elif input_tag["type"] == "checkbox":
-                data[input_tag["name"]] = "true"
-            elif input_tag["type"] != "submit": # take from user data
-                value = user_data.get(parameter_names[i])
-                data[input_tag["name"]] = value
-                i += 1
+    data = {}
+    for input_tag in form_details["inputs"]:
+        if ((input_tag["type"] == "hidden") or (input_tag["name"] == "rtec_user_comments")): 
+            data[input_tag["name"]] = input_tag["value"] # Use default value
+        elif input_tag["name"] == "rtec_recaptcha":
+            data[input_tag["name"]] = captcha_solution
+        elif input_tag["type"] == "checkbox":
+            data[input_tag["name"]] = "true"
+        elif input_tag["type"] != "submit": # take from user data
+            value = user_data.get(parameter_names[i])
+            data[input_tag["name"]] = value
+            i += 1
             
-        # join the url with the action (form request URL)
-        race_url = urljoin(race_url, form_details["action"])
+    # join the url with the action (form request URL)
+    race_url = urljoin(race_url, form_details["action"])
 
-        res = session.post(race_url, data=data)
-        return validate(res)
+    res = session.post(race_url, data=data)
+    return validate(res)
 
 def validate(res):
     errors = ""
     soup = BeautifulSoup(res.html.html, "html.parser")
     forms = soup.find_all("form")
-    if(len(forms) > 1):
-        form = soup.find_all("form")[1]
-        form_details = get_form_details(form)   
-        for input_tag in form_details["inputs"]:
-            if("aria-invalid" in input_tag.keys() and input_tag["aria-invalid"] == "true"):
-                split = input_tag["name"].split("_")
-                error = split[len(split) - 1]
-                errors += "Invalid " + error + "\n"             
+    form_details = get_signup_form_details(forms)
+    if(form_details == None):
+        return errors
+    for input_tag in form_details["inputs"]:
+        if("aria-invalid" in input_tag.keys() and input_tag["aria-invalid"] == "true"):
+            split = input_tag["name"].split("_")
+            error = split[len(split) - 1]
+            errors += "Invalid " + error + "\n"             
     return errors
-        
+   
 
 def get_captcha_solution(form_details):
     for input_tag in form_details["inputs"]:
         if input_tag["name"] == "rtec_recaptcha_sum":
             return input_tag["value"]
-    return 5 #Try your luck I guess if you reach here, though should really throw an exception
+            
+    return None
 
+def get_signup_form_details(forms):
+    for form in forms:
+        form_details = get_form_details(form)
+        for input_tag in form_details["inputs"]:
+            if(input_tag["name"] == "rtec_first"):
+                return form_details
+    return None
+    
 def get_all_forms(url, session):
     """Returns all form tags found on a web page's `url` """
     # GET request
