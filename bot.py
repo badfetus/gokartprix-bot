@@ -210,14 +210,14 @@ async def setNextStageNo(ctx, stageNo: int):
 
 @bot.command(name='standings', help='Shows the top 10 of standings')
 async def standings(ctx):
-    url = 'https://gokartprix.se/2025-season/2025-standings/'
+    url = 'https://gokartprix.se/2026-season/2026-standings/'
 
     standingsTable = getTables(url)[0]
     s = 'Standings: \n'
     for i in range(1, 11):
         if(len(standingsTable) <= i):
             break
-        s += standingsTable[i][0] + ". " + standingsTable[i][1] + ": " +standingsTable[i][len(standingsTable[i]) - 1] + "\n"
+        s += standingsTable[i][0] + ". " + standingsTable[i][1] + ": " + standingsTable[i][len(standingsTable[i]) - 2] + " (" + standingsTable[i][len(standingsTable[i]) - 1] + ")\n"
     s += "\n"
     
     session = HTMLSession()
@@ -231,7 +231,7 @@ async def standings(ctx):
 
 @bot.command(name='schedule', help='Shows the next 5 races')
 async def schedule(ctx):
-    table = getTables('https://gokartprix.se/2025-season/2025-schedule/')[0]
+    table = getTables('https://gokartprix.se/2026-season/2026-schedule/')[0]
     s = 'Schedule: \n'
     for i in range(getStageNo(), getStageNo() + 5):
         if(len(table) <= i):
