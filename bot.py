@@ -21,7 +21,7 @@ async def about(ctx):
     await ctx.message.channel.send('Go Kart Prix Bot by Berke Zorlu (bad_fetus#3637). All complaints go to him! Repository: https://github.com/badfetus/gokartprix-bot')
     
 @bot.command(name='assign-race', help ='Assigns race URL to channel')
-@commands.has_role('League Admin')
+@commands.has_role('Organiser')
 async def assign_race(ctx, signup_link: str):
     race_data = read_json('race data.json')
     channel_id = ctx.message.channel.id
@@ -203,7 +203,7 @@ def setStageNo(stageNo):
     save_json('bot data.json', botData)
 
 @bot.command(name='set-stage', help ='Sets next stage no.')
-@commands.has_role('League Admin')
+@commands.has_role('Organiser')
 async def setNextStageNo(ctx, stageNo: int):
     setStageNo(stageNo)
     await ctx.message.channel.send('Next stage no. set to ' + str(stageNo))
